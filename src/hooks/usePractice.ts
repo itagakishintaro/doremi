@@ -3,6 +3,9 @@ import type { Answer, Note } from "../types";
 
 export type PracticePhase = "waiting" | "active" | "finished";
 
+// 音符を認識してからタップするまでの操作時間分の猶予
+const TAP_BUFFER_SEC = 0.8;
+
 export function usePractice(notes: Note[], tempo: number) {
   const [phase, setPhase] = useState<PracticePhase>("waiting");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -36,7 +39,7 @@ export function usePractice(notes: Note[], tempo: number) {
         responseTimeSec,
         expectedTimeSec: expected,
         isCorrect: noteName === correct,
-        isOnTime: responseTimeSec <= expected,
+        isOnTime: responseTimeSec <= expected + TAP_BUFFER_SEC,
       };
 
       const next = [...answers, a];
@@ -54,5 +57,5 @@ export function usePractice(notes: Note[], tempo: number) {
 
   const passed = answers.length > 0 && answers.every((a) => a.isCorrect && a.isOnTime);
 
-  return { phase, currentIndex, answers, passed, start, answer, expectedTimeSec };
+  return { phase, currentIndex, answers, passed, start, answer, expectedTimeSec, tapBufferSec: TAP_BUFFER_SEC };
 }
