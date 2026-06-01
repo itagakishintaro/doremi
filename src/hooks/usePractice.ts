@@ -32,16 +32,16 @@ export function usePractice(notes: Note[], tempo: number) {
 
       const responseTimeSec = (Date.now() - noteStartTimeRef.current) / 1000;
       const correct = notes[currentIndex]?.noteName ?? "";
-      const expected = expectedTimeSec(currentIndex);
+      const deadline = deadlineTimeSec(currentIndex);
 
       const a: Answer = {
         noteIndex: currentIndex,
         userAnswer: noteName,
         correctAnswer: correct,
         responseTimeSec,
-        expectedTimeSec: expected,
+        expectedTimeSec: deadline,
         isCorrect: noteName === correct,
-        isOnTime: responseTimeSec <= deadlineTimeSec(currentIndex),
+        isOnTime: responseTimeSec <= deadline,
       };
 
       const next = [...answers, a];
