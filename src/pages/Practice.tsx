@@ -27,8 +27,14 @@ export function Practice() {
     });
   }, [user, scoreId, partId]);
 
-  const { phase, currentIndex, answers, passed, start, answer, deadlineTimeSec } =
+  const { phase, currentIndex, answers, passed, start, answer, deadlineTimeSec, feedbackType } =
     usePractice(part?.notes ?? [], part?.tempo ?? 120);
+
+  const feedbackBg =
+    feedbackType === "correct" ? "bg-green-100" :
+    feedbackType === "wrong"   ? "bg-red-100"   :
+    feedbackType === "late"    ? "bg-yellow-100" :
+    "bg-white";
 
   useEffect(() => {
     if (phase !== "finished" || !user || !scoreId || !partId || !part) return;
@@ -97,7 +103,7 @@ export function Practice() {
       )}
 
       {phase === "active" && (
-        <div className="space-y-3">
+        <div className={`space-y-3 rounded-xl transition-colors duration-300 p-2 ${feedbackBg}`}>
           {/* 五線譜で現在の音符を表示（音符名は非表示） */}
           <div className="bg-white rounded-xl border border-gray-200 px-6 py-4">
             <MusicStaff noteName={part.notes[currentIndex]?.noteName ?? "ド"} />
