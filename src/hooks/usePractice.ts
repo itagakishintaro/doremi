@@ -13,9 +13,11 @@ export function usePractice(notes: Note[], tempo: number) {
   const noteStartTimeRef = useRef<number>(0);
 
   const expectedTimeSec = (index: number) => {
-    const beats = notes[index]?.durationBeats ?? 1;
+    const beats = notes[index]?.durationBeats || 1;
     return (60 / tempo) * beats;
   };
+
+  const deadlineTimeSec = (index: number) => expectedTimeSec(index) + TAP_BUFFER_SEC;
 
   const start = useCallback(() => {
     setPhase("active");
@@ -39,7 +41,7 @@ export function usePractice(notes: Note[], tempo: number) {
         responseTimeSec,
         expectedTimeSec: expected,
         isCorrect: noteName === correct,
-        isOnTime: responseTimeSec <= expected + TAP_BUFFER_SEC,
+        isOnTime: responseTimeSec <= deadlineTimeSec(currentIndex),
       };
 
       const next = [...answers, a];
@@ -57,5 +59,5 @@ export function usePractice(notes: Note[], tempo: number) {
 
   const passed = answers.length > 0 && answers.every((a) => a.isCorrect && a.isOnTime);
 
-  return { phase, currentIndex, answers, passed, start, answer, expectedTimeSec, tapBufferSec: TAP_BUFFER_SEC };
+  return { phase, currentIndex, answers, passed, start, answer, expectedTimeSec, deadlineTimeSec };
 }

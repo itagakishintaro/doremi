@@ -27,7 +27,7 @@ export function Practice() {
     });
   }, [user, scoreId, partId]);
 
-  const { phase, currentIndex, answers, passed, start, answer, expectedTimeSec, tapBufferSec } =
+  const { phase, currentIndex, answers, passed, start, answer, deadlineTimeSec } =
     usePractice(part?.notes ?? [], part?.tempo ?? 120);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export function Practice() {
           </div>
 
           <Timer
-            expectedSec={expectedTimeSec(currentIndex) + tapBufferSec}
+            expectedSec={deadlineTimeSec(currentIndex)}
             running={true}
             key={currentIndex}
           />
