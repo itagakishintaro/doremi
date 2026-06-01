@@ -4,7 +4,7 @@ import type { Answer, Note } from "../types";
 export type PracticePhase = "waiting" | "active" | "finished";
 
 // 音符を認識してからタップするまでの操作時間分の猶予
-const TAP_BUFFER_SEC = 0.8;
+const TAP_BUFFER_SEC = 1.0;
 
 export function usePractice(notes: Note[], tempo: number) {
   const [phase, setPhase] = useState<PracticePhase>("waiting");
