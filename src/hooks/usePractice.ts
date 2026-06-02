@@ -4,10 +4,23 @@ import type { Answer, Note } from "../types";
 export type PracticePhase = "waiting" | "active" | "finished";
 export type FeedbackType = "correct" | "late" | "wrong" | null;
 
-// 音符を認識してからタップするまでの操作時間分の猶予
-const TAP_BUFFER_SEC = 1.0;
+// 音符を認識してからタップするまでの操作時間分の猶予（レベルで可変）
+// レベルが上がるほど猶予が短くなり難しくなる
+export const TAP_BUFFER_LEVELS: { level: number; bufferSec: number }[] = [
+  { level: 1, bufferSec: 2.0 },
+  { level: 2, bufferSec: 1.5 },
+  { level: 3, bufferSec: 1.0 },
+  { level: 4, bufferSec: 0.75 },
+  { level: 5, bufferSec: 0.5 },
+];
+export const DEFAULT_TAP_LEVEL = 1;
+export const DEFAULT_TAP_BUFFER_SEC = 2.0;
 
-export function usePractice(notes: Note[], tempo: number) {
+export function bufferSecForLevel(level: number): number {
+  return TAP_BUFFER_LEVELS.find((l) => l.level === level)?.bufferSec ?? DEFAULT_TAP_BUFFER_SEC;
+}
+
+export function usePractice(notes: Note[], tempo: number, tapBufferSec: number = DEFAULT_TAP_BUFFER_SEC) {
   const [phase, setPhase] = useState<PracticePhase>("waiting");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -19,7 +32,7 @@ export function usePractice(notes: Note[], tempo: number) {
     return (60 / tempo) * beats;
   };
 
-  const deadlineTimeSec = (index: number) => expectedTimeSec(index) + TAP_BUFFER_SEC;
+  const deadlineTimeSec = (index: number) => expectedTimeSec(index) + tapBufferSec;
 
   const start = useCallback(() => {
     setPhase("active");

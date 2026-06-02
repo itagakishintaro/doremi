@@ -4,7 +4,12 @@ import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from "fir
 import { httpsCallable } from "firebase/functions";
 import { db, functions } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
-import { usePractice } from "../hooks/usePractice";
+import {
+  usePractice,
+  TAP_BUFFER_LEVELS,
+  DEFAULT_TAP_LEVEL,
+  bufferSecForLevel,
+} from "../hooks/usePractice";
 import type { Part } from "../types";
 import { PartViewer } from "../components/PartViewer";
 import { MusicStaff } from "../components/MusicStaff";
@@ -18,6 +23,15 @@ export function Practice() {
   const [part, setPart] = useState<Part | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [level, setLevel] = useState<number>(() => {
+    const saved = Number(localStorage.getItem("tapLevel"));
+    return TAP_BUFFER_LEVELS.some((l) => l.level === saved) ? saved : DEFAULT_TAP_LEVEL;
+  });
+
+  const setAndStoreLevel = (lv: number) => {
+    setLevel(lv);
+    localStorage.setItem("tapLevel", String(lv));
+  };
 
   useEffect(() => {
     if (!user || !scoreId || !partId) return;
@@ -28,7 +42,7 @@ export function Practice() {
   }, [user, scoreId, partId]);
 
   const { phase, currentIndex, answers, passed, start, answer, deadlineTimeSec, feedbackType } =
-    usePractice(part?.notes ?? [], part?.tempo ?? 120);
+    usePractice(part?.notes ?? [], part?.tempo ?? 120, bufferSecForLevel(level));
 
   const feedbackBg =
     feedbackType === "correct" ? "bg-green-100" :
@@ -93,13 +107,41 @@ export function Practice() {
       <PartViewer part={part} currentNoteIndex={phase === "active" ? currentIndex : undefined} />
 
       {phase === "waiting" && (
-        <button
-          onClick={start}
-          className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold
-                     hover:bg-indigo-700 transition-colors"
-        >
-          練習開始
-        </button>
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">難易度（タップ猶予）</span>
+              <span className="text-xs text-gray-400">
+                レベル{level}・{bufferSecForLevel(level)}秒
+              </span>
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {TAP_BUFFER_LEVELS.map((l) => (
+                <button
+                  key={l.level}
+                  onClick={() => setAndStoreLevel(l.level)}
+                  className={`py-2 rounded-lg text-sm font-bold transition-colors
+                    ${level === l.level
+                      ? "bg-indigo-600 text-white"
+                      : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}
+                >
+                  {l.level}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400">
+              レベルが上がるほど猶予が短く、難しくなります
+            </p>
+          </div>
+
+          <button
+            onClick={start}
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold
+                       hover:bg-indigo-700 transition-colors"
+          >
+            練習開始
+          </button>
+        </div>
       )}
 
       {phase === "active" && (
