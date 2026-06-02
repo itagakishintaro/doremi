@@ -15,6 +15,7 @@ import { PartViewer } from "../components/PartViewer";
 import { MusicStaff } from "../components/MusicStaff";
 import { NoteInput } from "../components/NoteInput";
 import { Timer } from "../components/Timer";
+import { Countdown } from "../components/Countdown";
 
 export function Practice() {
   const { scoreId, partId } = useParams<{ scoreId: string; partId: string }>();
@@ -41,7 +42,7 @@ export function Practice() {
     });
   }, [user, scoreId, partId]);
 
-  const { phase, currentIndex, answers, passed, start, answer, deadlineTimeSec, feedbackType } =
+  const { phase, currentIndex, answers, passed, start, begin, answer, deadlineTimeSec, feedbackType } =
     usePractice(part?.notes ?? [], part?.tempo ?? 120, bufferSecForLevel(level));
 
   const feedbackBg =
@@ -94,6 +95,8 @@ export function Practice() {
 
   return (
     <div className="space-y-4">
+      {phase === "countdown" && <Countdown onComplete={begin} />}
+
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate(`/scores/${scoreId}`)}

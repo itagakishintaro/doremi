@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import type { Answer, Note } from "../types";
 
-export type PracticePhase = "waiting" | "active" | "finished";
+export type PracticePhase = "waiting" | "countdown" | "active" | "finished";
 export type FeedbackType = "correct" | "late" | "wrong" | null;
 
 // 音符を認識してからタップするまでの操作時間分の猶予（レベルで可変）
@@ -34,10 +34,16 @@ export function usePractice(notes: Note[], tempo: number, tapBufferSec: number =
 
   const deadlineTimeSec = (index: number) => expectedTimeSec(index) + tapBufferSec;
 
+  // 練習開始ボタン押下時：カウントダウンに入る（この時点では計測しない）
   const start = useCallback(() => {
-    setPhase("active");
+    setPhase("countdown");
     setCurrentIndex(0);
     setAnswers([]);
+  }, []);
+
+  // カウントダウン終了時：1音目の計測を開始する
+  const begin = useCallback(() => {
+    setPhase("active");
     noteStartTimeRef.current = Date.now();
   }, []);
 
@@ -80,5 +86,5 @@ export function usePractice(notes: Note[], tempo: number, tapBufferSec: number =
 
   const passed = answers.length > 0 && answers.every((a) => a.isCorrect && a.isOnTime);
 
-  return { phase, currentIndex, answers, passed, start, answer, expectedTimeSec, deadlineTimeSec, feedbackType };
+  return { phase, currentIndex, answers, passed, start, begin, answer, expectedTimeSec, deadlineTimeSec, feedbackType };
 }
